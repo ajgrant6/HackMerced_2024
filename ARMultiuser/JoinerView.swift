@@ -65,7 +65,7 @@ class JoinerViewController: UIViewController, ARSCNViewDelegate, ARSessionDelega
         // Set a delegate to track the number of plane anchors for providing UI feedback.
         sceneView.session.delegate = self
         
-        sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
+//        sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
         // Prevent the screen from being dimmed after a while as users will likely
         // have long periods of interaction without touching the screen or buttons.
         UIApplication.shared.isIdleTimerDisabled = true
@@ -85,8 +85,18 @@ class JoinerViewController: UIViewController, ARSCNViewDelegate, ARSessionDelega
         if let name = anchor.name, name.hasPrefix("panda") {
             node.addChildNode(loadRedPandaModel())
         }
-        if let name = anchor.name, name.hasPrefix("Bobcat") {
+        else if let name = anchor.name, name.hasPrefix("Bobcat") {
             node.addChildNode(loadScannedModel(name: "Bobcat"))
+        }
+        
+        if let name = anchor.name, name.hasPrefix("AJ"){
+            node.addChildNode(loadScannedModel(name: "AJ"))
+        }
+        else if let name = anchor.name, name.hasPrefix("Nicole"){
+            node.addChildNode(loadScannedModel(name: "Nicole"))
+        }
+        else if let name = anchor.name, name.hasPrefix("Jason"){
+            node.addChildNode(loadScannedModel(name: "Jason"))
         }
     }
     
@@ -154,6 +164,7 @@ class JoinerViewController: UIViewController, ARSCNViewDelegate, ARSessionDelega
     
     /// - Tag: PlaceCharacter
     @IBAction func handleSceneTap(_ sender: UITapGestureRecognizer) {
+        
 //        // Hit test to find a place for a virtual object.
 //        guard let hitTestResult = sceneView
 //            .hitTest(sender.location(in: sceneView), types: [.existingPlaneUsingGeometry, .estimatedHorizontalPlane])

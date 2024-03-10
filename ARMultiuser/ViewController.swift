@@ -48,6 +48,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         // Start the view's AR session.
         let configuration = ARWorldTrackingConfiguration()
         configuration.planeDetection = .horizontal
+        
         if #available(iOS 13.0, *) {
             configuration.frameSemantics.insert(.personSegmentationWithDepth)
         } else {
@@ -59,7 +60,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         // Set a delegate to track the number of plane anchors for providing UI feedback.
         sceneView.session.delegate = self
         
-        sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
+//        sceneView.debugOptions = [ARSCNDebugOptions.showFeaturePoints]
         // Prevent the screen from being dimmed after a while as users will likely
         // have long periods of interaction without touching the screen or buttons.
         UIApplication.shared.isIdleTimerDisabled = true
@@ -79,8 +80,18 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         if let name = anchor.name, name.hasPrefix("panda") {
             node.addChildNode(loadRedPandaModel())
         }
-        if let name = anchor.name, name.hasPrefix("Bobcat"){
+        else if let name = anchor.name, name.hasPrefix("Bobcat") {
             node.addChildNode(loadScannedModel(name: "Bobcat"))
+        }
+        
+        if let name = anchor.name, name.hasPrefix("AJ"){
+            node.addChildNode(loadScannedModel(name: "AJ"))
+        }
+        else if let name = anchor.name, name.hasPrefix("Nicole"){
+            node.addChildNode(loadScannedModel(name: "Nicole"))
+        }
+        else if let name = anchor.name, name.hasPrefix("Jason"){
+            node.addChildNode(loadScannedModel(name: "Jason"))
         }
     }
     
@@ -147,23 +158,31 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     // MARK: - Multiuser shared session
     
     /// - Tag: PlaceCharacter
+    var modelindex = 0
+    
     @IBAction func handleSceneTap(_ sender: UITapGestureRecognizer) {
         
         // Hit test to find a place for a virtual object.
         guard let hitTestResult = sceneView
             .hitTest(sender.location(in: sceneView), types: [.existingPlaneUsingGeometry, .estimatedHorizontalPlane])
             .first
-            else { return }
+        else { return }
         
         // Place an anchor for a virtual character. The model appears in renderer(_:didAdd:for:).
-//        let anchor = ARAnchor(name: "panda", transform: hitTestResult.worldTransform) //Panda
-        let anchor = ARAnchor(name: "Bobcat", transform: hitTestResult.worldTransform)
+        //        let anchor = ARAnchor(name: "panda", transform: hitTestResult.worldTransform) //Panda
+        //        let anchor = ARAnchor(name: "Bobcat", transform: hitTestResult.worldTransform) //Bobcat
+        let choices = ["AJ", "Nicole", "Jason"]
+        let anchor = ARAnchor(name: choices[modelindex%3], transform: hitTestResult.worldTransform)
+        
+        modelindex += 1
+        
         sceneView.session.add(anchor: anchor)
         
         // Send the anchor info to peers, so they can place the same content.
         guard let data = try? NSKeyedArchiver.archivedData(withRootObject: anchor, requiringSecureCoding: true)
-            else { fatalError("can't encode anchor") }
+        else { fatalError("can't encode anchor") }
         self.multipeerSession.sendToAllPeers(data)
+
     }
     
     /// - Tag: GetWorldMap
