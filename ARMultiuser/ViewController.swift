@@ -2,7 +2,7 @@
 See LICENSE folder for this sample’s licensing information.
 
 Abstract:
-Main view controller for the AR experience.
+THIS IS THE CODE FOR THE HIDER
 */
 
 import UIKit

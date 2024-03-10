@@ -4,7 +4,7 @@
 //
 //  Created by AJ Grant on 3/9/24.
 //  Copyright © 2024 Apple. All rights reserved.
-//
+// THIS IS THE CODE FOR THE SEEKER
 
 /*
 See LICENSE folder for this sample’s licensing information.
@@ -28,7 +28,6 @@ class JoinerViewController: UIViewController, ARSCNViewDelegate, ARSessionDelega
 //    @IBOutlet weak var mappingStatusLabel: UILabel!
     
     // MARK: - View Life Cycle
-    
     var multipeerSession: MultipeerSession!
     
     override func viewDidLoad() {
@@ -55,6 +54,12 @@ class JoinerViewController: UIViewController, ARSCNViewDelegate, ARSessionDelega
         // Start the view's AR session.
         let configuration = ARWorldTrackingConfiguration()
         configuration.planeDetection = .horizontal
+        if #available(iOS 13.0, *) {
+            configuration.frameSemantics.insert(.personSegmentationWithDepth)
+        } else {
+            // Fallback on earlier versions
+        }
+        
         sceneView.session.run(configuration)
         
         // Set a delegate to track the number of plane anchors for providing UI feedback.
@@ -73,12 +78,15 @@ class JoinerViewController: UIViewController, ARSCNViewDelegate, ARSessionDelega
         // Pause the view's AR session.
         sceneView.session.pause()
     }
-    
+
     // MARK: - ARSCNViewDelegate
     
     func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
         if let name = anchor.name, name.hasPrefix("panda") {
             node.addChildNode(loadRedPandaModel())
+        }
+        if let name = anchor.name, name.hasPrefix("Bobcat") {
+            node.addChildNode(loadScannedModel(name: "Bobcat"))
         }
     }
     
@@ -207,6 +215,7 @@ class JoinerViewController: UIViewController, ARSCNViewDelegate, ARSessionDelega
     private func updateSessionInfoLabel(for frame: ARFrame, trackingState: ARCamera.TrackingState) {
         // Update the UI to provide feedback on the state of the AR experience.
         let message: String
+        let started = false // If the hider has started a session at any point
         
         switch trackingState {
         case .normal where frame.anchors.isEmpty && multipeerSession.connectedPeers.isEmpty:
@@ -239,12 +248,13 @@ class JoinerViewController: UIViewController, ARSCNViewDelegate, ARSessionDelega
         default:
             // No feedback needed when tracking is normal and planes are visible.
             // (Nor when in unreachable limited-tracking states.)
-            message = ""
+            message = "Please wait for the hider to hide AR objects!"
             
         }
         
         sessionInfoLabel.text = message
-        sessionInfoView.isHidden = message.isEmpty
+        sessionInfoLabel.isHidden = (message == "Please wait for the hider to hide AR objects!" && started == true)
+        sessionInfoView.isHidden = (message == "Please wait for the hider to hide AR objects!" && started == true)
     }
     
     @IBAction func resetTracking(_ sender: UIButton?) {
@@ -259,6 +269,13 @@ class JoinerViewController: UIViewController, ARSCNViewDelegate, ARSessionDelega
         let referenceNode = SCNReferenceNode(url: sceneURL)!
         referenceNode.load()
         
+        return referenceNode
+    }
+    
+    private func loadScannedModel(name: String) -> SCNNode {
+        let sceneURL = Bundle.main.url(forResource: name, withExtension: "usdz", subdirectory: "Assets.scnassets")!
+        let referenceNode = SCNReferenceNode(url: sceneURL)!
+        referenceNode.load()
         return referenceNode
     }
 }
