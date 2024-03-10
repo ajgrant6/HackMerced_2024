@@ -18,6 +18,7 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     @IBOutlet weak var sceneView: ARSCNView!
     @IBOutlet weak var sendMapButton: UIButton!
     @IBOutlet weak var mappingStatusLabel: UILabel!
+
     
     // MARK: - View Life Cycle
     
@@ -47,6 +48,12 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         // Start the view's AR session.
         let configuration = ARWorldTrackingConfiguration()
         configuration.planeDetection = .horizontal
+        if #available(iOS 13.0, *) {
+            configuration.frameSemantics.insert(.personSegmentationWithDepth)
+        } else {
+            // Fallback on earlier versions
+        }
+        
         sceneView.session.run(configuration)
         
         // Set a delegate to track the number of plane anchors for providing UI feedback.
@@ -71,6 +78,9 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
     func renderer(_ renderer: SCNSceneRenderer, didAdd node: SCNNode, for anchor: ARAnchor) {
         if let name = anchor.name, name.hasPrefix("panda") {
             node.addChildNode(loadRedPandaModel())
+        }
+        if let name = anchor.name, name.hasPrefix("Bobcat"){
+            node.addChildNode(loadScannedModel(name: "Bobcat"))
         }
     }
     
@@ -146,7 +156,8 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
             else { return }
         
         // Place an anchor for a virtual character. The model appears in renderer(_:didAdd:for:).
-        let anchor = ARAnchor(name: "panda", transform: hitTestResult.worldTransform)
+//        let anchor = ARAnchor(name: "panda", transform: hitTestResult.worldTransform) //Panda
+        let anchor = ARAnchor(name: "Bobcat", transform: hitTestResult.worldTransform)
         sceneView.session.add(anchor: anchor)
         
         // Send the anchor info to peers, so they can place the same content.
@@ -254,5 +265,10 @@ class ViewController: UIViewController, ARSCNViewDelegate, ARSessionDelegate {
         
         return referenceNode
     }
+    private func loadScannedModel(name: String) -> SCNNode {
+        let sceneURL = Bundle.main.url(forResource: name, withExtension: "usdz", subdirectory: "Assets.scnassets")!
+        let referenceNode = SCNReferenceNode(url: sceneURL)!
+        referenceNode.load()
+        return referenceNode
+    }
 }
-
